@@ -2,20 +2,14 @@ package main
 
 import (
 	"github.com/hexops/vecty"
-	"github.com/hexops/vecty/elem"
+	"github.com/kappa-lab/vecty-playground/components"
 )
 
 func main() {
 	vecty.SetTitle("Mypage")
-	vecty.RenderBody(&PageView{})
-}
 
-type PageView struct {
-	vecty.Core
-}
+	vecty.AddStylesheet("https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/css/bootstrap.min.css")
 
-func (p *PageView) Render() vecty.ComponentOrHTML {
-	return elem.Body(
-		vecty.Text("Hello World"),
-	)
+	vecty.RenderBody(&components.PageView{})
+
 }
