@@ -19,6 +19,11 @@ func NewPageView() *PageView {
 	return &PageView{buttonLabel: "Clear"}
 }
 
+func (p *PageView) reset() *PageView {
+	p.messages = []string{}
+	p.message = ""
+	return p
+}
 func (p *PageView) Render() vecty.ComponentOrHTML {
 
 	messages := []vecty.MarkupOrChild{}
@@ -73,8 +78,8 @@ func (p *PageView) Render() vecty.ComponentOrHTML {
 		elem.Div(
 			elem.Form(
 				vecty.Markup(
-					event.Submit(func(e *vecty.Event) {
-						vecty.Rerender(NewPageView())
+					event.Click(func(e *vecty.Event) {
+						vecty.Rerender(p.reset())
 					}),
 				),
 
