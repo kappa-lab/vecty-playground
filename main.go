@@ -6,10 +6,11 @@ import (
 )
 
 func main() {
+
 	vecty.SetTitle("Mypage")
 
 	vecty.AddStylesheet("https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/css/bootstrap.min.css")
 
-	vecty.RenderBody(&components.PageView{})
+	vecty.RenderBody(components.NewPageView())
 
 }
