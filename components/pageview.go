@@ -10,13 +10,15 @@ import (
 
 type PageView struct {
 	vecty.Core
+
+	url         string
 	buttonLabel string
 	message     string
 	messages    []string
 }
 
-func NewPageView() *PageView {
-	return &PageView{buttonLabel: "Clear"}
+func NewPageView(url string) *PageView {
+	return &PageView{buttonLabel: "Clear", url: url}
 }
 
 func (p *PageView) reset() *PageView {
@@ -37,8 +39,10 @@ func (p *PageView) Render() vecty.ComponentOrHTML {
 		),
 		elem.Script(
 			vecty.Text("console.log('Ready...');"),
+			vecty.Text("console.log(location.href);"),
 			vecty.Text("function log(val) {console.log(val)};"),
 		),
+
 		elem.Div(
 			vecty.Markup(
 				vecty.Class("display-2"),
@@ -54,12 +58,16 @@ func (p *PageView) Render() vecty.ComponentOrHTML {
 					event.Submit(func(e *vecty.Event) {
 						p.messages = append(p.messages, p.message)
 						p.message = ""
+						elem.Script(
+							vecty.Text("console.log('done');"),
+						)
 						vecty.Rerender(p)
 					}).PreventDefault(),
 				),
 
 				elem.Input(
 					vecty.Markup(
+						vecty.Attribute("name", "message-input"),
 						prop.Placeholder("Enter Message"),
 						prop.Autofocus(true),
 						prop.Value(p.message),
@@ -72,7 +80,8 @@ func (p *PageView) Render() vecty.ComponentOrHTML {
 		),
 
 		elem.Div(
-			messages...,
+			vecty.Markup(vecty.Attribute("name", "message-list")),
+			elem.OrderedList(messages...),
 		),
 
 		elem.Div(
@@ -87,6 +96,11 @@ func (p *PageView) Render() vecty.ComponentOrHTML {
 					vecty.Text(p.buttonLabel), // initial textarea text.
 				),
 			),
+		),
+
+		elem.Div(
+			elem.Heading4(vecty.Text("URL")),
+			elem.Paragraph(vecty.Text(p.url)),
 		),
 	)
 }
