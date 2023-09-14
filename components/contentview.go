@@ -1,22 +1,32 @@
 package components
 
 import (
+	"net/url"
+
 	"github.com/hexops/vecty"
 	"github.com/hexops/vecty/elem"
+	"github.com/kappa-lab/vecty-playground/dispatcher"
 )
 
 type ContentView struct {
 	vecty.Core
-	Title string
+	url url.URL
 }
 
-func NewContentView() *ContentView {
-	return &ContentView{Title: "Home"}
+func NewContentView(url url.URL) *ContentView {
+	v := &ContentView{url: url}
+	dispatcher.Register(v.OnUpdateURL)
+	return v
 }
+func (v *ContentView) OnUpdateURL(url url.URL) {
+	v.url = url
+	vecty.Rerender(v)
+}
+
 func (v *ContentView) Render() vecty.ComponentOrHTML {
 	var content vecty.ComponentOrHTML = elem.Div()
 
-	switch v.Title {
+	switch v.url.Fragment {
 	case "products":
 		content = v.products()
 	case "orders":
@@ -32,7 +42,7 @@ func (v *ContentView) Render() vecty.ComponentOrHTML {
 			vecty.Markup(
 				vecty.Class("text-uppercase"),
 			),
-			vecty.Text(v.Title),
+			vecty.Text(v.url.Fragment),
 		),
 		content,
 	)

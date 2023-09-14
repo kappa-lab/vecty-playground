@@ -5,6 +5,8 @@ import (
 
 	"github.com/hexops/vecty"
 	"github.com/hexops/vecty/elem"
+	"github.com/hexops/vecty/event"
+	"github.com/kappa-lab/vecty-playground/dispatcher"
 )
 
 type SidebarView struct {
@@ -13,12 +15,19 @@ type SidebarView struct {
 }
 
 func NewSidebarView(url url.URL) *SidebarView {
-	return &SidebarView{url: url}
+	v := &SidebarView{url: url}
+	dispatcher.Register(v.OnUpdateURL)
+	return v
 }
 
-func (v *SidebarView) addItem(text string, href string, isActive bool) *vecty.HTML {
+func (v *SidebarView) OnUpdateURL(url url.URL) {
+	v.url = url
+	vecty.Rerender(v)
+}
+
+func (v *SidebarView) addItem(text string, fragment string) *vecty.HTML {
 	state := "text-white"
-	if isActive {
+	if v.url.Fragment == fragment {
 		state = "active"
 	}
 	return elem.ListItem(
@@ -27,7 +36,11 @@ func (v *SidebarView) addItem(text string, href string, isActive bool) *vecty.HT
 			vecty.Markup(
 				vecty.Class("nav-link", state),
 				vecty.Attribute("aria-current", "page"),
-				vecty.Attribute("href", "/#"+href),
+				vecty.Attribute("href", "/#"+fragment),
+				event.Click(func(e *vecty.Event) {
+					v.url.Fragment = fragment
+					dispatcher.Dispatch(v.url)
+				}),
 			),
 			vecty.Text(text),
 		),
@@ -53,11 +66,11 @@ func (v *SidebarView) Render() vecty.ComponentOrHTML {
 		elem.HorizontalRule(),
 		elem.UnorderedList(
 			vecty.Markup(vecty.Class("nav", "nav-pills", "flex-column", "mb-auto")),
-			v.addItem("Home", "home", true),
-			v.addItem("Dashboard", "dashboard", false),
-			v.addItem("Orders", "orders", false),
-			v.addItem("Products", "products", false),
-			v.addItem("Customers", "customers", false),
+			v.addItem("Home", "home"),
+			v.addItem("Dashboard", "dashboard"),
+			v.addItem("Orders", "orders"),
+			v.addItem("Products", "products"),
+			v.addItem("Customers", "customers"),
 		),
 		elem.HorizontalRule(),
 		elem.Div(
