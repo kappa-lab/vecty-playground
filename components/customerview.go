@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
+	"time"
 
 	"github.com/hexops/vecty"
 	"github.com/hexops/vecty/elem"
@@ -19,30 +20,31 @@ type CustomersJSON struct {
 
 type CustomersView struct {
 	vecty.Core
-	Data *CustomersJSON
+	Data    *CustomersJSON
+	httpCli *http.Client
 }
 
 func NewCustomersView() *CustomersView {
-	v := &CustomersView{}
+	v := &CustomersView{
+		httpCli: http.DefaultClient,
+	}
+	v.httpCli.Timeout = time.Second
 	return v
 }
 
-func (v *CustomersView) Load(ctx context.Context) {
+func (v *CustomersView) AsyncLoad(ctx context.Context) {
 	v.Data = nil
 	go func() { // HTTPリクエストを送信する場合は、goroutine化する必要がある
 		endpoint := "/api/customers.json"
-		var (
-			resp *http.Response
-			err  error
-		)
-		resp, err = http.Get(endpoint)
+		req, err := http.NewRequest(http.MethodGet, endpoint, nil)
+		req = req.WithContext(ctx)
+		resp, err := v.httpCli.Do(req)
 		if err != nil {
 			return
 		}
 		var data CustomersJSON
 		err = json.NewDecoder(resp.Body).Decode(&data)
 		if err != nil {
-			v.Data = nil
 			return
 		}
 		v.Data = &data
