@@ -19,7 +19,7 @@ type CustomersJSON struct {
 
 type CustomersView struct {
 	vecty.Core
-	Data CustomersJSON
+	Data *CustomersJSON
 }
 
 func NewCustomersView() *CustomersView {
@@ -27,7 +27,8 @@ func NewCustomersView() *CustomersView {
 	return v
 }
 
-func (v *CustomersView) Load(ctx context.Context) vecty.ComponentOrHTML {
+func (v *CustomersView) Load(ctx context.Context) {
+	v.Data = nil
 	go func() { // HTTPリクエストを送信する場合は、goroutine化する必要がある
 		endpoint := "/api/customers.json"
 		var (
@@ -36,22 +37,26 @@ func (v *CustomersView) Load(ctx context.Context) vecty.ComponentOrHTML {
 		)
 		resp, err = http.Get(endpoint)
 		if err != nil {
+			return
 		}
 		var data CustomersJSON
 		err = json.NewDecoder(resp.Body).Decode(&data)
-
-		vecty.RenderInto("#customers-inner", &CustomersView{Data: data})
+		if err != nil {
+			v.Data = nil
+			return
+		}
+		v.Data = &data
+		vecty.Rerender(v)
 	}()
-
-	return elem.Div(
-		vecty.Markup(
-			vecty.Attribute("id", "customers-inner"),
-		),
-		elem.Paragraph(vecty.Text("Loading...")),
-	)
 }
 
 func (v *CustomersView) Render() vecty.ComponentOrHTML {
+	if v.Data == nil {
+		return elem.Div(
+			elem.Paragraph(vecty.Text("Loading...")),
+		)
+	}
+
 	tableInner := []vecty.MarkupOrChild{
 		vecty.Markup(
 			vecty.Class("table", "table-sm", "table-bordered"),
@@ -75,9 +80,5 @@ func (v *CustomersView) Render() vecty.ComponentOrHTML {
 		)
 	}
 
-	return elem.Div(
-		vecty.Markup(
-			vecty.Attribute("id", "customers-inner"),
-		),
-		elem.Table(tableInner...))
+	return elem.Div(elem.Table(tableInner...))
 }

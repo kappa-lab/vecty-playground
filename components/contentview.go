@@ -124,5 +124,7 @@ func (v *ContentView) orders() vecty.ComponentOrHTML {
 }
 
 func (v *ContentView) customers(ctx context.Context) vecty.ComponentOrHTML {
-	return NewCustomersView().Load(ctx)
+	c := NewCustomersView()
+	c.Load(ctx)
+	return c
 }
