@@ -1,6 +1,7 @@
 package components
 
 import (
+	"context"
 	"net/url"
 
 	"github.com/hexops/vecty"
@@ -26,11 +27,18 @@ func (v *ContentView) OnUpdateURL(url url.URL) {
 func (v *ContentView) Render() vecty.ComponentOrHTML {
 	var content vecty.ComponentOrHTML = elem.Div()
 
+	title := v.url.Fragment
 	switch v.url.Fragment {
+	case "home":
+		content = v.home()
 	case "products":
 		content = v.products()
 	case "orders":
 		content = v.orders()
+	case "customers":
+		content = v.customers(context.Background())
+	case "":
+		title = "MY SHOP"
 	}
 
 	return elem.Div(
@@ -42,9 +50,15 @@ func (v *ContentView) Render() vecty.ComponentOrHTML {
 			vecty.Markup(
 				vecty.Class("text-uppercase"),
 			),
-			vecty.Text(v.url.Fragment),
+			vecty.Text(title),
 		),
 		content,
+	)
+}
+
+func (v *ContentView) home() vecty.ComponentOrHTML {
+	return elem.Div(
+		elem.Paragraph(vecty.Text("SHOP-ID: 1")),
 	)
 }
 
@@ -107,4 +121,8 @@ func (v *ContentView) orders() vecty.ComponentOrHTML {
 			),
 		),
 	)
+}
+
+func (v *ContentView) customers(ctx context.Context) vecty.ComponentOrHTML {
+	return NewCustomersView().Load(ctx)
 }
